@@ -82,7 +82,7 @@ parse_time(Binary) ->
 
 parse_timezone(Binary) ->
   Match = re:run(Binary,
-    "^(Z|(?:\\+|\\-)[0-9]{2}:[0-9]{2})$",
+    "^(Z|[\\+\\-][0-9]{2}:[0-9]{2})$",
     [{capture, all, binary}]
   ) ,
   case Match of

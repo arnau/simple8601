@@ -1,9 +1,10 @@
 -module(simple8601).
 -export([parse/1]).
+-export([parse_timezone/1]).
 
 parse(String) ->
   Match = re:run(String,
-    "^((?:[^T]+)?)((?:T(?:.+))?)$",
+    "^((?:[^T]+)?)(?:T?((?:.+)?))$",
     [{capture, all, binary}]
   ) ,
   {match, [_, Raw_date, Raw_time]} = Match ,
@@ -34,10 +35,12 @@ parse_date(Binary) ->
 
 parse_time(Binary) ->
   Match = re:run(Binary,
-    "^([0-9]{2}):([0-9]{2}):([0-9]+(?:\.[0-9]+)?)((?:.+)?)$",
+    "^([0-9]{2}):([0-9]{2}):([0-9]+(?:\\.[0-9]+)?)(.+)?$",
     [{capture, all, binary}]
   ) ,
   case Match of
+    {match, [_, Hours, Minutes, Seconds]} ->
+      {binary_to_number(Hours), binary_to_number(Minutes), binary_to_number(Seconds)} ;
     {match, [_, Hours, Minutes, Seconds, Timezone]} ->
       {binary_to_number(Hours), binary_to_number(Minutes), binary_to_number(Seconds), parse_timezone(Timezone)} ;
     nomatch -> {error, unknown_time_format}
@@ -46,12 +49,11 @@ parse_time(Binary) ->
 
 parse_timezone(Binary) ->
   Match = re:run(Binary,
-    "^(Z|(?:\+|\-)[0-9]{2}:[0-9]{2})$",
+    "^(Z|(?:\\+|\\-)[0-9]{2}:[0-9]{2})$",
     [{capture, all, binary}]
   ) ,
   case Match of
-    {match, [_, Timezone]} ->
-      Timezone ;
+    {match, [_, Timezone]} -> Timezone ;
     nomatch -> {error, unknown_time_format}
   end .
 

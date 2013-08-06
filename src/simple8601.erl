@@ -76,7 +76,7 @@ parse_time(Binary) ->
         binary_to_number(Seconds),
         parse_timezone(Timezone)
       } ;
-    nomatch -> {error, unknown_time_format}
+    nomatch -> {error, unknown_format}
   end .
 
 
@@ -87,7 +87,7 @@ parse_timezone(Binary) ->
   ) ,
   case Match of
     {match, [_, Timezone]} -> Timezone ;
-    nomatch -> {error, unknown_time_format}
+    nomatch -> {error, unknown_format}
   end .
 
 

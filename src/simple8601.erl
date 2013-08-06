@@ -1,6 +1,30 @@
 -module(simple8601).
--export([parse/1]).
--export([parse_timezone/1]).
+-export([format/1, parse/1]).
+
+format({_, _, _} = Timestamp) ->
+  format(calendar:now_to_datetime(Timestamp)) ;
+
+format({Date, Time} = DateTime) ->
+  R = case DateTime of
+    {Date , {}} -> [format_date(Date)] ;
+    {{}, Time} -> [format_time(Time)] ;
+    {Date, Time} -> [format_date(Date), "T", format_time(Time)]
+  end ,
+  list_to_binary(R) .
+
+format_date({Year, Month, Day}) ->
+  Formatter = "~4.10.0B-~2.10.0B-~2.10.0B",
+  Str = io_lib:format(Formatter, [Year, Month, Day]),
+  list_to_binary(Str) .
+
+format_time({Hours, Minutes, Seconds}) when is_float(Seconds) ->
+  Formatter = "~2.10.0B:~2.10.0B:~.2fZ",
+  Str = io_lib:format(Formatter, [Hours, Minutes, Seconds]),
+  list_to_binary(Str) ;
+format_time({Hours, Minutes, Seconds}) ->
+  Formatter = "~2.10.0B:~2.10.0B:~2.10.0BZ",
+  Str = io_lib:format(Formatter, [Hours, Minutes, Seconds]),
+  list_to_binary(Str) .
 
 parse(String) ->
   Match = re:run(String,
@@ -29,7 +53,7 @@ parse_date(Binary) ->
   case Match of
     {match, [_, Year, Month, Day]} ->
       {binary_to_number(Year), binary_to_number(Month), binary_to_number(Day)} ;
-    nomatch -> {error, unknown_time_format}
+    nomatch -> {error, unknown_format}
   end .
 
 
@@ -40,9 +64,18 @@ parse_time(Binary) ->
   ) ,
   case Match of
     {match, [_, Hours, Minutes, Seconds]} ->
-      {binary_to_number(Hours), binary_to_number(Minutes), binary_to_number(Seconds)} ;
+      {
+        binary_to_number(Hours),
+        binary_to_number(Minutes),
+        binary_to_number(Seconds)
+      } ;
     {match, [_, Hours, Minutes, Seconds, Timezone]} ->
-      {binary_to_number(Hours), binary_to_number(Minutes), binary_to_number(Seconds), parse_timezone(Timezone)} ;
+      {
+        binary_to_number(Hours),
+        binary_to_number(Minutes),
+        binary_to_number(Seconds),
+        parse_timezone(Timezone)
+      } ;
     nomatch -> {error, unknown_time_format}
   end .
 

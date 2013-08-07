@@ -17,6 +17,9 @@ format_date({Year, Month, Day}) ->
   Str = io_lib:format(Formatter, [Year, Month, Day]),
   list_to_binary(Str) .
 
+%%
+% Only allows fractions in seconds. Should be reviewed if
+% format/1 allows time precision `hh:mm'.
 format_time({Hours, Minutes, Seconds}) when is_float(Seconds) ->
   Formatter = "~2.10.0B:~2.10.0B:~.2fZ",
   Str = io_lib:format(Formatter, [Hours, Minutes, Seconds]),
